@@ -1,0 +1,159 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>OLX Search</title>
+</head>
+<body>
+<script>
+function slugifyQuery(query) {
+  return query
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function cleanText(text) {
+  return (text || "").replace(/\s+/g, " ").trim();
+}
+
+function extractPrice(text) {
+  const cleaned = cleanText(text);
+  const match = cleaned.match(/(\d[\d\s.]*)\s*€/);
+  if (!match) return null;
+  const numeric = match[1].replace(/[^\d]/g, "");
+  return numeric ? parseInt(numeric, 10) : null;
+}
+
+function absoluteUrl(href) {
+  if (!href) return null;
+  if (href.startsWith("http")) return href;
+  if (href.startsWith("/")) return "https://www.olx.pt" + href;
+  return "https://www.olx.pt/" + href;
+}
+
+function parseResultsFromDocument(doc) {
+  const results = [];
+
+  // Tentativa 1: links de anúncios
+  const links = Array.from(doc.querySelectorAll("a"))
+    .filter(a => {
+      const href = a.getAttribute("href") || "";
+      return href.includes("/d/anuncio/") || href.includes("/anuncio/");
+    });
+
+  const seen = new Set();
+
+  for (const link of links) {
+    const href = absoluteUrl(link.getAttribute("href"));
+    if (!href || seen.has(href)) continue;
+    seen.add(href);
+
+    const card =
+      link.closest("article") ||
+      link.closest("[data-cy]") ||
+      link.closest("div");
+
+    const blockText = cleanText(card ? card.innerText : link.innerText);
+    const title = cleanText(link.textContent) || blockText.split("\n")[0] || "Sem título";
+    const price = extractPrice(blockText);
+
+    // Tenta apanhar localização e data por linhas curtas
+    const lines = blockText.split("\n").map(cleanText).filter(Boolean);
+    let location = "";
+    let date = "";
+
+    for (const line of lines) {
+      if (!location && / - /.test(line) && !/€/.test(line)) {
+        const parts = line.split(" - ").map(cleanText);
+        if (parts.length >= 2) {
+          location = parts[0];
+          date = parts.slice(1).join(" - ");
+          break;
+        }
+      }
+    }
+
+    // fallback: procurar menções soltas conhecidas
+    if (!date) {
+      const maybeDate = lines.find(line =>
+        /(hoje|ontem|\d{1,2} de [a-zç]+ de \d{4}|Para o topo)/i.test(line)
+      );
+      if (maybeDate) date = maybeDate;
+    }
+
+    results.push({
+      title,
+      price,
+      location,
+      date,
+      link: href
+    });
+  }
+
+  return results;
+}
+
+window.ai_edge_gallery_get_result = async function (data) {
+  try {
+    const input = JSON.parse(data || "{}");
+    const query = (input.query || "").trim();
+    const maxResults = Number.isInteger(input.max_results) ? input.max_results : 5;
+    const maxPrice = typeof input.max_price === "number" ? input.max_price : null;
+
+    if (!query) {
+      return JSON.stringify({ error: "Missing query." });
+    }
+
+    const slug = slugifyQuery(query);
+    const url = `https://www.olx.pt/ads/q-${slug}/`;
+
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        "Accept": "text/html"
+      }
+    });
+
+    if (!response.ok) {
+      return JSON.stringify({
+        error: `HTTP error ${response.status} while fetching OLX results.`,
+        debug_url: url
+      });
+    }
+
+    const html = await response.text();
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, "text/html");
+
+    let results = parseResultsFromDocument(doc);
+
+    // limpar resultados pobres ou genéricos
+    results = results.filter(r => r.link && r.title && r.title.length > 2);
+
+    if (maxPrice !== null) {
+      results = results.filter(r => r.price === null || r.price <= maxPrice);
+    }
+
+    results = results.slice(0, maxResults);
+
+    return JSON.stringify({
+      result: {
+        query,
+        url,
+        total_returned: results.length,
+        max_price_applied: maxPrice,
+        items: results
+      }
+    });
+  } catch (err) {
+    return JSON.stringify({
+      error: String(err)
+    });
+  }
+};
+</script>
+</body>
+</html>
