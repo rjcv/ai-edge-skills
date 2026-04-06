@@ -13,7 +13,7 @@ Receber um pedido de pesquisa do utilizador, executar a pesquisa no website púb
 
 ## Instruções
 Quando o utilizador pedir para procurar um produto, chama a tool `run_js` com:
-- script name: `index.html`
+- script name: `scripts/index.html`
 - data: um JSON string com:
   - `query`: texto a pesquisar
   - `max_results`: número máximo de resultados a devolver, por defeito 5
