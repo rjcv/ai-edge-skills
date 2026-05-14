@@ -1,15 +1,16 @@
 ---
 name: text_photo_analyzer
-description: Use esta ferramenta quando o utilizador pedir para analisar, resumir, extrair ou traduzir texto a partir de uma foto, imagem ou captura de ecrã.
+description: Use esta ferramenta quando o utilizador pedir para analisar, avaliar ou corrigir um texto a partir de uma foto, imagem ou captura de ecrã.
 ---
 # Instruções do Sistema
-* Quando o utilizador pedir para analisar um texto por foto, use esta ferramenta para abrir a câmara ou carregar a imagem.
-* Assim que a imagem for capturada, processe-a nativamente com a sua capacidade de Visão (OCR) para extrair o texto completo.
-* Apresente ao utilizador:
-  1. O texto original extraído integralmente.
-  2. Um resumo estruturado em tópicos dos pontos principais.
-  3. Uma análise de tom ou identificação de dados importantes (datas, nomes, valores), se aplicável.
-* Mantenha uma postura profissional e garanta que o processamento ocorre localmente.
+* Quando o utilizador fornecer uma imagem, use a sua capacidade de Visão (OCR) para extrair o texto completo.
+* Avalie o texto extraído utilizando obrigatoriamente os seguintes quatro critérios de correção:
+  1. **Coerência**: Analise se o texto faz sentido, se a lógica das ideias é clara e se há contradições.
+  2. **Coesão**: Verifique a ligação entre as frases e parágrafos (uso de conectores, pronomes e pontuação).
+  3. **Vocabulário**: Avalie a riqueza, a variedade e a adequação das palavras escolhidas ao contexto.
+  4. **Ortografia**: Identifique erros de grafia, acentuação e desvios às regras gramaticais.
+* Apresente o resultado estruturado com uma nota descritiva ou feedback detalhado para cada um dos critérios acima.
+* Indique sugestões claras de melhoria para os pontos fracos detetados.
 ---
 <!DOCTYPE html>
 <html lang="pt">
@@ -54,11 +55,6 @@ description: Use esta ferramenta quando o utilizador pedir para analisar, resumi
             width: 100%;
         }
         button:active { background-color: #1557b0; }
-        .secondary-btn {
-            background-color: #f1f3f4;
-            color: #3c4043;
-        }
-        .secondary-btn:active { background-color: #e8eaed; }
         #preview {
             width: 100%;
             max-height: 250px;
@@ -68,17 +64,15 @@ description: Use esta ferramenta quando o utilizador pedir para analisar, resumi
             display: none;
             border: 1px dashed #dadce0;
         }
-        /* Input de ficheiro escondido para usar botões customizados */
         #fileInput { display: none; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h3>Analisador de Imagem para Texto</h3>
-    <p>Tire uma foto a um documento ou carregue uma imagem da galeria para o modelo local analisar.</p>
+    <h3>Corretor e Analisador de Texto</h3>
+    <p>Tire uma foto à redação ou texto para receber uma avaliação baseada em Coerência, Coesão, Vocabulário e Ortografia.</p>
     
-    <!-- Input oculto nativo que aceita câmara no telemóvel -->
     <input type="file" id="fileInput" accept="image/*">
     
     <div class="btn-group">
@@ -93,23 +87,18 @@ description: Use esta ferramenta quando o utilizador pedir para analisar, resumi
     const captureBtn = document.getElementById('captureBtn');
     const preview = document.getElementById('preview');
 
-    // Aciona o seletor nativo do smartphone (Câmara/Galeria) ao clicar no botão
     captureBtn.addEventListener('click', () => {
         fileInput.click();
     });
 
-    // Quando o utilizador tira a foto ou escolhe o ficheiro
     fileInput.addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (file) {
             const reader = new FileReader();
             reader.onload = function(event) {
-                // Mostra o preview da imagem no chat do agente
                 preview.src = event.target.result;
                 preview.style.display = 'block';
 
-                // Envia a imagem de volta para o ecossistema da app Google AI Edge
-                // O Gemma 4 interseta os dados e inicia a leitura OCR e análise
                 if (window.parent && window.parent.postMessage) {
                     window.parent.postMessage({
                         type: 'MEDIA_INPUT',
@@ -125,4 +114,3 @@ description: Use esta ferramenta quando o utilizador pedir para analisar, resumi
 
 </body>
 </html>
-
