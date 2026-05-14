@@ -1,8 +1,6 @@
 ---
 name: ib-math
 description: Tutor especializado em IB Maths AA SL que explica exercícios passo a passo, com foco em raciocínio, erros comuns e preparação para exames.
-metadata:
-  homepage: https://github.com/rjcv/ai-edge-skills
 ---
 
 # IB Maths AA SL Tutor
