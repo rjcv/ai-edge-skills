@@ -9,8 +9,8 @@ description: Use esta ferramenta quando o utilizador pedir para analisar, avalia
   2. **Coesão**: Verifique a ligação entre as frases e parágrafos (uso de conectores, pronomes e pontuação).
   3. **Vocabulário**: Avalie a riqueza, a variedade e a adequação das palavras escolhidas ao contexto.
   4. **Ortografia**: Identifique erros de grafia, acentuação e desvios às regras gramaticais.
-* Apresente o resultado estruturado com uma nota descritiva ou feedback detalhado para cada um dos critérios acima.
-* Indique sugestões claras de melhoria para os pontos fracos detetados.
+* **Avaliação Qualitativa Final**: No final da resposta, apresente uma conclusão pedagógica global sobre o desempenho do aluno. Classifique o nível geral do texto (ex: Insuficiente, Satisfatório, Bom, Muito Bom) e justifique a nota com base no equilíbrio ou falhas encontradas nos quatro critérios anteriores.
+* Forneça uma mensagem de incentivo final com os passos prioritários para o aluno evoluir na escrita.
 ---
 <!DOCTYPE html>
 <html lang="pt">
@@ -70,13 +70,13 @@ description: Use esta ferramenta quando o utilizador pedir para analisar, avalia
 <body>
 
 <div class="container">
-    <h3>Corretor e Analisador de Texto</h3>
-    <p>Tire uma foto à redação ou texto para receber uma avaliação baseada em Coerência, Coesão, Vocabulário e Ortografia.</p>
+    <h3>Corretor Avaliativo de Texto</h3>
+    <p>Submeta a foto do texto para receber a análise por critérios e o parecer qualitativo final do aluno.</p>
     
     <input type="file" id="fileInput" accept="image/*">
     
     <div class="btn-group">
-        <button id="captureBtn">📸 Tirar Foto / Escolher Imagem</button>
+        <button id="captureBtn">📸 Fotografar / Carregar Texto</button>
     </div>
 
     <img id="preview" alt="Pré-visualização do texto">
@@ -92,7 +92,7 @@ description: Use esta ferramenta quando o utilizador pedir para analisar, avalia
     });
 
     fileInput.addEventListener('change', function(e) {
-        const file = e.target.files[0];
+        const file = e.target.files;
         if (file) {
             const reader = new FileReader();
             reader.onload = function(event) {
